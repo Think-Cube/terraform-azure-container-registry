@@ -58,8 +58,8 @@ stages:
         - script: |
             # Variables
             github_token="$(GITHUB_TOKEN)" 
-            # Generate or update README.md
-            /tmp/terraform-docs markdown table . > README.md
+            # Generate or update README.md using .terraform-docs.yml
+            /tmp/terraform-docs markdown . --config .terraform-docs.yml
 
             # Check if README.md has been updated or created and add to PR
             if [ -f README.md ]; then
@@ -67,7 +67,7 @@ stages:
               git config --global user.email "devops-bot@example.com"
               git config --global user.name "DevOps Bot"
               git add README.md
-              git commit -m "Update README.md with module documentation"
+              git commit -m "Update README.md with module documentation and example usage"
               
               # Set remote URL with authentication token
               git remote set-url origin https://$(GITHUB_TOKEN)@github.com/Think-Cube/terraform-azure-container-registry.git
