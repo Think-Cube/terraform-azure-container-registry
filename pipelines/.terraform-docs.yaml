@@ -1,0 +1,73 @@
+formatter: markdown
+output:
+  file: README.md
+  mode: inject
+sections:
+  show:
+    - header
+    - requirements
+    - providers
+    - inputs
+    - outputs
+content: |
+  # Terraform Azure Container Registry Module
+
+  This Terraform module creates and manages an Azure Container Registry (ACR) with support for all configuration options available in the `azurerm_container_registry` resource for provider version 4.34.0.
+
+  ## Usage
+
+  ```hcl
+  module "acr" {
+    source                        = "./terraform-azure-container-registry"
+    acr_name                      = "mycontainerregistry123"
+    resource_group_name           = "my-resource-group"
+    resource_group_location       = "West Europe"
+    acr_tier                      = "Premium"
+    acr_admin_enabled             = true
+    public_network_access_enabled = false
+    quarantine_policy_enabled     = true
+    zone_redundancy_enabled       = true
+    export_policy_enabled         = false
+    anonymous_pull_enabled        = true
+    data_endpoint_enabled         = true
+    network_rule_bypass_option    = "AzureServices"
+    retention_policy       = 7
+    trust_policy           = {
+      enabled = true
+    }
+    default_tags           = {
+      Project     = "MyProject"
+      Environment = "Production"
+    }
+    environment            = "prod"
+    georeplications        = [
+      {
+        location                  = "East US"
+        zone_redundancy_enabled   = true
+        regional_endpoint_enabled = true
+        tags                      = { Environment = "prod" }
+      }
+    ]
+    network_rule_set       = {
+      default_action = "Deny"
+      ip_rules       = ["203.0.113.0/24"]
+    }
+    identity               = {
+      type         = "SystemAssigned"
+      identity_ids = []
+    }
+    encryption             = {
+      key_vault_key_id   = "https://myvault.vault.azure.net/keys/mykey/1234567890abcdef"
+      identity_client_id = "<user-assigned-identity-client-id>"
+    }
+  }
+  ```
+
+  ## Notes
+
+  - The module supports all configuration options available in the `azurerm_container_registry` resource for provider version 4.34.0.
+  - Premium SKU is required for features like georeplication, network rules, retention policies, trust policies, and encryption.
+  - Ensure the resource group exists before deploying the module.
+  - Use the `default_tags` variable to enforce consistent tagging across resources.
+
+  © 2025 Think-Cube
