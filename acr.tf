@@ -8,17 +8,19 @@ resource "azurerm_container_registry" "main" {
   quarantine_policy_enabled     = var.quarantine_policy_enabled
   zone_redundancy_enabled       = var.zone_redundancy_enabled
   export_policy_enabled         = var.export_policy_enabled
-  anonymous_pull_enabled         = var.anonymous_pull_enabled
+  anonymous_pull_enabled        = var.anonymous_pull_enabled
   data_endpoint_enabled         = var.data_endpoint_enabled
   network_rule_bypass_option    = var.network_rule_bypass_option
+  retention_policy_in_days      = var.retention_policy != null ? var.retention_policy.days : null
+  trust_policy_enabled          = var.trust_policy != null ? var.trust_policy.enabled : false
 
-  dynamic "georeplication" {
+  dynamic "georeplications" {
     for_each = var.georeplications
     content {
-      location                  = georeplication.value.location
-      zone_redundancy_enabled   = georeplication.value.zone_redundancy_enabled
-      regional_endpoint_enabled = georeplication.value.regional_endpoint_enabled
-      tags                      = merge(var.default_tags, georeplication.value.tags)
+      location                  = georeplications.value.location
+      zone_redundancy_enabled   = georeplications.value.zone_redundancy_enabled
+      regional_endpoint_enabled = georeplications.value.regional_endpoint_enabled
+      tags                      = merge(var.default_tags, georeplications.value.tags)
     }
   }
 
@@ -35,28 +37,13 @@ resource "azurerm_container_registry" "main" {
         }
       }
 
-      dynamic "virtual_network" {
+      dynamic "virtual_network_rule" {
         for_each = network_rule_set.value.virtual_network_rules
         content {
           action    = "Allow"
-          subnet_id = virtual_network.value
+          subnet_id = virtual_network_rule.value
         }
       }
-    }
-  }
-
-  dynamic "retention_policy" {
-    for_each = var.retention_policy != null ? [var.retention_policy] : []
-    content {
-      days    = retention_policy.value.days
-      enabled = retention_policy.value.enabled
-    }
-  }
-
-  dynamic "trust_policy" {
-    for_each = var.trust_policy != null ? [var.trust_policy] : []
-    content {
-      enabled = trust_policy.value.enabled
     }
   }
 
@@ -71,7 +58,7 @@ resource "azurerm_container_registry" "main" {
   dynamic "encryption" {
     for_each = var.encryption != null ? [var.encryption] : []
     content {
-      key_vault_key_id = encryption.value.key_vault_key_id
+      key_vault_key_id   = encryption.value.key_vault_key_id
       identity_client_id = encryption.value.identity_client_id
     }
   }

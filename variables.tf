@@ -97,11 +97,8 @@ variable "network_rule_set" {
 }
 
 variable "retention_policy" {
-  description = "Retention policy for untagged manifests in the Container Registry (Premium SKU only)."
-  type = object({
-    days    = number
-    enabled = bool
-  })
+  description = "Number of days to retain untagged manifests in the Container Registry (Premium SKU only). Set to null to disable."
+  type = number
   default = null
 }
 
