@@ -11,7 +11,7 @@ resource "azurerm_container_registry" "main" {
   anonymous_pull_enabled        = var.anonymous_pull_enabled
   data_endpoint_enabled         = var.data_endpoint_enabled
   network_rule_bypass_option    = var.network_rule_bypass_option
-  retention_policy_in_days      = var.retention_policy != null ? var.retention_policy.days : null
+  retention_policy_in_days      = var.retention_policy != null ? var.retention_policy : null
   trust_policy_enabled          = var.trust_policy != null ? var.trust_policy.enabled : false
 
   dynamic "georeplications" {
@@ -34,14 +34,6 @@ resource "azurerm_container_registry" "main" {
         content {
           action   = "Allow"
           ip_range = ip_rule.value
-        }
-      }
-
-      dynamic "virtual_network_rule" {
-        for_each = network_rule_set.value.virtual_network_rules
-        content {
-          action    = "Allow"
-          subnet_id = virtual_network_rule.value
         }
       }
     }

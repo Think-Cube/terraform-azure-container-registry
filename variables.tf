@@ -89,9 +89,8 @@ variable "georeplications" {
 variable "network_rule_set" {
   description = "Network rules for the Container Registry (Premium SKU only)."
   type = object({
-    default_action         = string
-    ip_rules               = list(string)
-    virtual_network_rules  = list(string)
+    default_action = string
+    ip_rules       = list(string)
   })
   default = null
 }
