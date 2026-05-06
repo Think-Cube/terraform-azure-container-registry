@@ -11,8 +11,10 @@ resource "azurerm_container_registry" "main" {
   anonymous_pull_enabled        = var.anonymous_pull_enabled
   data_endpoint_enabled         = var.data_endpoint_enabled
   network_rule_bypass_option    = var.network_rule_bypass_option
-  retention_policy_in_days      = var.retention_policy != null ? var.retention_policy : null
-  trust_policy_enabled          = var.trust_policy != null ? var.trust_policy.enabled : false
+
+  retention_policy_in_days = var.retention_policy != null ? var.retention_policy : null
+
+  trust_policy_enabled = var.trust_policy != null ? var.trust_policy.enabled : false
 
   dynamic "georeplications" {
     for_each = var.georeplications

@@ -10,7 +10,7 @@ No providers.
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_acr_basic"></a> [acr\_basic](#module\_acr\_basic) | ./terraform-azure-container-registry | n/a |
+| <a name="module_acr_standard"></a> [acr\_standard](#module\_acr\_standard) | ./terraform-azure-container-registry | n/a |
 
 ## Resources
 
