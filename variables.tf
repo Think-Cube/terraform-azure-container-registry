@@ -9,7 +9,7 @@ variable "resource_group_name" {
 }
 
 variable "resource_group_location" {
-  description = "The Azure region where the resource group is located."
+  description = "The Azure region in which to create the Container Registry. Changing this forces a new resource to be created."
   type        = string
 }
 
@@ -48,25 +48,25 @@ variable "zone_redundancy_enabled" {
 }
 
 variable "export_policy_enabled" {
-  description = "Whether export policy is enabled for the Container Registry."
+  description = "Whether export policy is enabled for the Container Registry. Requires public_network_access_enabled = true."
   type        = bool
   default     = true
 }
 
 variable "anonymous_pull_enabled" {
-  description = "Whether anonymous pull access is enabled for the Container Registry (Premium SKU only)."
+  description = "Whether anonymous pull access is enabled for the Container Registry (Standard and Premium SKU only)."
   type        = bool
   default     = false
 }
 
 variable "data_endpoint_enabled" {
-  description = "Whether data endpoint is enabled for the Container Registry (Premium SKU only)."
+  description = "Whether dedicated data endpoints are enabled for the Container Registry (Premium SKU only)."
   type        = bool
   default     = false
 }
 
 variable "network_rule_bypass_option" {
-  description = "Specifies whether Azure Services can bypass network rules. Possible values are 'AzureServices' or 'None'."
+  description = "Specifies whether to allow trusted Azure services to access a network-restricted Container Registry. Possible values are 'AzureServices' or 'None'."
   type        = string
   default     = "AzureServices"
   validation {
@@ -75,51 +75,57 @@ variable "network_rule_bypass_option" {
   }
 }
 
+variable "retention_policy_in_days" {
+  description = "The number of days to retain untagged manifests before they are purged (Premium SKU only). Set to null to disable."
+  type        = number
+  default     = null
+}
+
+variable "trust_policy_enabled" {
+  description = "Whether content trust (image signing) is enabled for the Container Registry (Premium SKU only)."
+  type        = bool
+  default     = false
+}
+
 variable "georeplications" {
   description = "A list of georeplication configurations for the Container Registry (Premium SKU only)."
   type = list(object({
     location                  = string
-    zone_redundancy_enabled   = bool
-    regional_endpoint_enabled = bool
-    tags                      = map(string)
+    zone_redundancy_enabled   = optional(bool, false)
+    regional_endpoint_enabled = optional(bool, false)
+    tags                      = optional(map(string), {})
   }))
   default = []
 }
 
 variable "network_rule_set" {
-  description = "Network rules for the Container Registry (Premium SKU only)."
+  description = "Network rule set for the Container Registry (Premium SKU only). Set to null to disable."
   type = object({
-    default_action = string
-    ip_rules       = list(string)
+    default_action = optional(string, "Deny")
+    ip_rule = optional(list(object({
+      action   = optional(string, "Allow")
+      ip_range = string
+    })), [])
   })
   default = null
-}
 
-variable "retention_policy" {
-  description = "Number of days to retain untagged manifests in the Container Registry (Premium SKU only). Set to null to disable."
-  type = number
-  default = null
-}
-
-variable "trust_policy" {
-  description = "Trust policy for the Container Registry (Premium SKU only)."
-  type = object({
-    enabled = bool
-  })
-  default = null
+  validation {
+    condition     = var.network_rule_set == null ? true : contains(["Allow", "Deny"], var.network_rule_set.default_action)
+    error_message = "network_rule_set.default_action must be one of: Allow, Deny."
+  }
 }
 
 variable "identity" {
-  description = "Identity configuration for the Container Registry."
+  description = "Managed identity configuration. type can be 'SystemAssigned', 'UserAssigned', or 'SystemAssigned, UserAssigned'. identity_ids is required for UserAssigned."
   type = object({
     type         = string
-    identity_ids = list(string)
+    identity_ids = optional(list(string))
   })
   default = null
 }
 
 variable "encryption" {
-  description = "Encryption configuration for the Container Registry (Premium SKU only)."
+  description = "Customer-managed key encryption configuration for the Container Registry (Premium SKU only). Set to null to use Microsoft-managed keys."
   type = object({
     key_vault_key_id   = string
     identity_client_id = string
@@ -127,12 +133,19 @@ variable "encryption" {
   default = null
 }
 
-variable "default_tags" {
-  description = "A map of default tags to assign to all resources."
-  type        = map(string)
+variable "timeouts" {
+  description = "Custom timeouts for create, read, update and delete operations."
+  type = object({
+    create = optional(string)
+    read   = optional(string)
+    update = optional(string)
+    delete = optional(string)
+  })
+  default = null
 }
 
-variable "environment" {
-  description = "The name of the environment to deploy resources into, such as 'dev', 'test', or 'prod'."
-  type        = string
+variable "default_tags" {
+  description = "A map of default tags to assign to the Container Registry."
+  type        = map(string)
+  default     = {}
 }

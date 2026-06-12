@@ -1,6 +1,6 @@
 resource "azurerm_container_registry" "main" {
   name                          = var.acr_name
-  resource_group_name           = data.azurerm_resource_group.main.name
+  resource_group_name           = var.resource_group_name
   location                      = var.resource_group_location
   sku                           = var.acr_tier
   admin_enabled                 = var.acr_admin_enabled
@@ -11,10 +11,9 @@ resource "azurerm_container_registry" "main" {
   anonymous_pull_enabled        = var.anonymous_pull_enabled
   data_endpoint_enabled         = var.data_endpoint_enabled
   network_rule_bypass_option    = var.network_rule_bypass_option
-
-  retention_policy_in_days = var.retention_policy != null ? var.retention_policy : null
-
-  trust_policy_enabled = var.trust_policy != null ? var.trust_policy.enabled : false
+  retention_policy_in_days      = var.retention_policy_in_days
+  trust_policy_enabled          = var.trust_policy_enabled
+  tags                          = var.default_tags
 
   dynamic "georeplications" {
     for_each = var.georeplications
@@ -32,10 +31,10 @@ resource "azurerm_container_registry" "main" {
       default_action = network_rule_set.value.default_action
 
       dynamic "ip_rule" {
-        for_each = network_rule_set.value.ip_rules
+        for_each = network_rule_set.value.ip_rule
         content {
-          action   = "Allow"
-          ip_range = ip_rule.value
+          action   = ip_rule.value.action
+          ip_range = ip_rule.value.ip_range
         }
       }
     }
@@ -57,5 +56,13 @@ resource "azurerm_container_registry" "main" {
     }
   }
 
-  tags = var.default_tags
+  dynamic "timeouts" {
+    for_each = var.timeouts != null ? [var.timeouts] : []
+    content {
+      create = timeouts.value.create
+      read   = timeouts.value.read
+      update = timeouts.value.update
+      delete = timeouts.value.delete
+    }
+  }
 }

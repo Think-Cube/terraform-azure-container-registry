@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/Think-Cube/terraform-azure-container-registry/security/policy
+    about: Please report security vulnerabilities privately, not via public issues.
+  - name: AzureRM provider documentation
+    url: https://registry.terraform.io/providers/hashicorp/azurerm/4.77.0/docs/resources/container_registry
+    about: Reference for the underlying azurerm_container_registry resource.

@@ -26,7 +26,7 @@ output "data_endpoint_host_names" {
 
 output "identity" {
   description = "The identity details of the Container Registry, including principal_id and tenant_id, if a managed identity is configured."
-  value = azurerm_container_registry.main.identity != null ? {
+  value = length(azurerm_container_registry.main.identity) > 0 ? {
     principal_id = azurerm_container_registry.main.identity[0].principal_id
     tenant_id    = azurerm_container_registry.main.identity[0].tenant_id
   } : null
