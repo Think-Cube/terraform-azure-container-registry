@@ -1,27 +1,92 @@
+<!-- BEGIN_TF_DOCS -->
+# Terraform Azure Container Registry Module
+
+This Terraform module creates and manages an Azure Container Registry (ACR) with support for all configuration options available in the `azurerm_container_registry` resource for provider version 4.77.0.
+
+## Usage
+
+```hcl
+module "acr" {
+  source                        = "Think-Cube/container-registry/azure"
+  version                       = "1.0.0"
+  acr_name                      = "mycontainerregistry123"
+  resource_group_name           = "my-resource-group"
+  resource_group_location       = "West Europe"
+  acr_tier                      = "Premium"
+  acr_admin_enabled             = true
+  public_network_access_enabled = false
+  quarantine_policy_enabled     = true
+  zone_redundancy_enabled       = true
+  export_policy_enabled         = false
+  anonymous_pull_enabled        = true
+  data_endpoint_enabled         = true
+  network_rule_bypass_option    = "AzureServices"
+  retention_policy_in_days      = 7
+  trust_policy_enabled          = true
+
+  georeplications = [
+    {
+      location                  = "East US"
+      zone_redundancy_enabled   = true
+      regional_endpoint_enabled = true
+      tags                      = { Environment = "prod" }
+    }
+  ]
+
+  network_rule_set = {
+    default_action = "Deny"
+    ip_rule = [
+      { action = "Allow", ip_range = "203.0.113.0/24" }
+    ]
+  }
+
+  identity = {
+    type = "SystemAssigned"
+  }
+
+  encryption = {
+    key_vault_key_id   = "https://myvault.vault.azure.net/keys/mykey/1234567890abcdef"
+    identity_client_id = "<user-assigned-identity-client-id>"
+  }
+
+  default_tags = {
+    Project     = "MyProject"
+    Environment = "Production"
+  }
+}
+```
+
+## Notes
+
+- The module supports all arguments and blocks of the `azurerm_container_registry` resource for provider version 4.77.0.
+- Premium SKU is required for georeplication, network rules, retention policy, trust policy, data endpoints and customer-managed key encryption.
+- The resource group named by `resource_group_name` must already exist.
+- Use the `default_tags` variable to enforce consistent tagging.
+
+## Examples
+
+See the [`examples/`](./examples) directory for `basic`, `standard` and `full` usage.
+
+© 2026 Think-Cube
+
 ## Requirements
 
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.6.3 |
-| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | 4.46.0 |
+| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | 4.77.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | 4.46.0 |
-
-## Modules
-
-No modules.
+| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | 4.77.0 |
 
 ## Resources
 
 | Name | Type |
 |------|------|
-| [azurerm_container_registry.main](https://registry.terraform.io/providers/hashicorp/azurerm/4.46.0/docs/resources/container_registry) | resource |
-| [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/4.46.0/docs/data-sources/client_config) | data source |
-| [azurerm_resource_group.main](https://registry.terraform.io/providers/hashicorp/azurerm/4.46.0/docs/data-sources/resource_group) | data source |
+| [azurerm_container_registry.main](https://registry.terraform.io/providers/hashicorp/azurerm/4.77.0/docs/resources/container_registry) | resource |
 
 ## Inputs
 
@@ -30,22 +95,22 @@ No modules.
 | <a name="input_acr_admin_enabled"></a> [acr\_admin\_enabled](#input\_acr\_admin\_enabled) | Specifies whether the admin user is enabled for the Container Registry. | `bool` | `false` | no |
 | <a name="input_acr_name"></a> [acr\_name](#input\_acr\_name) | The name of the Container Registry. Changing this forces a new resource to be created. | `string` | n/a | yes |
 | <a name="input_acr_tier"></a> [acr\_tier](#input\_acr\_tier) | The SKU name of the Container Registry. Possible values are Basic, Standard, and Premium. | `string` | `"Basic"` | no |
-| <a name="input_anonymous_pull_enabled"></a> [anonymous\_pull\_enabled](#input\_anonymous\_pull\_enabled) | Whether anonymous pull access is enabled for the Container Registry (Premium SKU only). | `bool` | `false` | no |
-| <a name="input_data_endpoint_enabled"></a> [data\_endpoint\_enabled](#input\_data\_endpoint\_enabled) | Whether data endpoint is enabled for the Container Registry (Premium SKU only). | `bool` | `false` | no |
-| <a name="input_default_tags"></a> [default\_tags](#input\_default\_tags) | A map of default tags to assign to all resources. | `map(string)` | n/a | yes |
-| <a name="input_encryption"></a> [encryption](#input\_encryption) | Encryption configuration for the Container Registry (Premium SKU only). | <pre>object({<br/>    key_vault_key_id   = string<br/>    identity_client_id = string<br/>  })</pre> | `null` | no |
-| <a name="input_environment"></a> [environment](#input\_environment) | The name of the environment to deploy resources into, such as 'dev', 'test', or 'prod'. | `string` | n/a | yes |
-| <a name="input_export_policy_enabled"></a> [export\_policy\_enabled](#input\_export\_policy\_enabled) | Whether export policy is enabled for the Container Registry. | `bool` | `true` | no |
-| <a name="input_georeplications"></a> [georeplications](#input\_georeplications) | A list of georeplication configurations for the Container Registry (Premium SKU only). | <pre>list(object({<br/>    location                  = string<br/>    zone_redundancy_enabled   = bool<br/>    regional_endpoint_enabled = bool<br/>    tags                      = map(string)<br/>  }))</pre> | `[]` | no |
-| <a name="input_identity"></a> [identity](#input\_identity) | Identity configuration for the Container Registry. | <pre>object({<br/>    type         = string<br/>    identity_ids = list(string)<br/>  })</pre> | `null` | no |
-| <a name="input_network_rule_bypass_option"></a> [network\_rule\_bypass\_option](#input\_network\_rule\_bypass\_option) | Specifies whether Azure Services can bypass network rules. Possible values are 'AzureServices' or 'None'. | `string` | `"AzureServices"` | no |
-| <a name="input_network_rule_set"></a> [network\_rule\_set](#input\_network\_rule\_set) | Network rules for the Container Registry (Premium SKU only). | <pre>object({<br/>    default_action = string<br/>    ip_rules       = list(string)<br/>  })</pre> | `null` | no |
+| <a name="input_anonymous_pull_enabled"></a> [anonymous\_pull\_enabled](#input\_anonymous\_pull\_enabled) | Whether anonymous pull access is enabled for the Container Registry (Standard and Premium SKU only). | `bool` | `false` | no |
+| <a name="input_data_endpoint_enabled"></a> [data\_endpoint\_enabled](#input\_data\_endpoint\_enabled) | Whether dedicated data endpoints are enabled for the Container Registry (Premium SKU only). | `bool` | `false` | no |
+| <a name="input_default_tags"></a> [default\_tags](#input\_default\_tags) | A map of default tags to assign to the Container Registry. | `map(string)` | `{}` | no |
+| <a name="input_encryption"></a> [encryption](#input\_encryption) | Customer-managed key encryption configuration for the Container Registry (Premium SKU only). Set to null to use Microsoft-managed keys. | <pre>object({<br>    key_vault_key_id   = string<br>    identity_client_id = string<br>  })</pre> | `null` | no |
+| <a name="input_export_policy_enabled"></a> [export\_policy\_enabled](#input\_export\_policy\_enabled) | Whether export policy is enabled for the Container Registry. Requires public\_network\_access\_enabled = true. | `bool` | `true` | no |
+| <a name="input_georeplications"></a> [georeplications](#input\_georeplications) | A list of georeplication configurations for the Container Registry (Premium SKU only). | <pre>list(object({<br>    location                  = string<br>    zone_redundancy_enabled   = optional(bool, false)<br>    regional_endpoint_enabled = optional(bool, false)<br>    tags                      = optional(map(string), {})<br>  }))</pre> | `[]` | no |
+| <a name="input_identity"></a> [identity](#input\_identity) | Managed identity configuration. type can be 'SystemAssigned', 'UserAssigned', or 'SystemAssigned, UserAssigned'. identity\_ids is required for UserAssigned. | <pre>object({<br>    type         = string<br>    identity_ids = optional(list(string))<br>  })</pre> | `null` | no |
+| <a name="input_network_rule_bypass_option"></a> [network\_rule\_bypass\_option](#input\_network\_rule\_bypass\_option) | Specifies whether to allow trusted Azure services to access a network-restricted Container Registry. Possible values are 'AzureServices' or 'None'. | `string` | `"AzureServices"` | no |
+| <a name="input_network_rule_set"></a> [network\_rule\_set](#input\_network\_rule\_set) | Network rule set for the Container Registry (Premium SKU only). Set to null to disable. | <pre>object({<br>    default_action = optional(string, "Deny")<br>    ip_rule = optional(list(object({<br>      action   = optional(string, "Allow")<br>      ip_range = string<br>    })), [])<br>  })</pre> | `null` | no |
 | <a name="input_public_network_access_enabled"></a> [public\_network\_access\_enabled](#input\_public\_network\_access\_enabled) | Whether public network access is allowed for the Container Registry. | `bool` | `true` | no |
 | <a name="input_quarantine_policy_enabled"></a> [quarantine\_policy\_enabled](#input\_quarantine\_policy\_enabled) | Whether quarantine policy is enabled for the Container Registry. | `bool` | `false` | no |
-| <a name="input_resource_group_location"></a> [resource\_group\_location](#input\_resource\_group\_location) | The Azure region where the resource group is located. | `string` | n/a | yes |
+| <a name="input_resource_group_location"></a> [resource\_group\_location](#input\_resource\_group\_location) | The Azure region in which to create the Container Registry. Changing this forces a new resource to be created. | `string` | n/a | yes |
 | <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name) | The name of the resource group in which the Container Registry will be created. | `string` | n/a | yes |
-| <a name="input_retention_policy"></a> [retention\_policy](#input\_retention\_policy) | Number of days to retain untagged manifests in the Container Registry (Premium SKU only). Set to null to disable. | `number` | `null` | no |
-| <a name="input_trust_policy"></a> [trust\_policy](#input\_trust\_policy) | Trust policy for the Container Registry (Premium SKU only). | <pre>object({<br/>    enabled = bool<br/>  })</pre> | `null` | no |
+| <a name="input_retention_policy_in_days"></a> [retention\_policy\_in\_days](#input\_retention\_policy\_in\_days) | The number of days to retain untagged manifests before they are purged (Premium SKU only). Set to null to disable. | `number` | `null` | no |
+| <a name="input_timeouts"></a> [timeouts](#input\_timeouts) | Custom timeouts for create, read, update and delete operations. | <pre>object({<br>    create = optional(string)<br>    read   = optional(string)<br>    update = optional(string)<br>    delete = optional(string)<br>  })</pre> | `null` | no |
+| <a name="input_trust_policy_enabled"></a> [trust\_policy\_enabled](#input\_trust\_policy\_enabled) | Whether content trust (image signing) is enabled for the Container Registry (Premium SKU only). | `bool` | `false` | no |
 | <a name="input_zone_redundancy_enabled"></a> [zone\_redundancy\_enabled](#input\_zone\_redundancy\_enabled) | Whether zone redundancy is enabled for the Container Registry (Premium SKU only). | `bool` | `false` | no |
 
 ## Outputs
@@ -58,3 +123,4 @@ No modules.
 | <a name="output_id"></a> [id](#output\_id) | The ID of the Container Registry. |
 | <a name="output_identity"></a> [identity](#output\_identity) | The identity details of the Container Registry, including principal\_id and tenant\_id, if a managed identity is configured. |
 | <a name="output_login_server"></a> [login\_server](#output\_login\_server) | The URL that can be used to log into the Container Registry. |
+<!-- END_TF_DOCS -->
